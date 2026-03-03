@@ -91,7 +91,11 @@ function uploadTexture(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  // Flip Y on upload so the source canvas (top-left origin) is correctly
+  // oriented in GL's coordinate space (bottom-left origin).
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
   return tex;
 }
 
@@ -111,17 +115,31 @@ function setUniforms(
   }
 }
 
-/** Copy the GL canvas to a 2D canvas, flipping Y to correct for
- *  WebGL's bottom-left origin vs canvas 2D's top-left origin. */
-function copyToDest(dest: HTMLCanvasElement, width: number, height: number): void {
+/** Copy GL canvas to a 2D dest canvas via readPixels to guarantee correct orientation. */
+function copyToDest(
+  ctx: WebGL2RenderingContext,
+  dest: HTMLCanvasElement,
+  width: number,
+  height: number,
+): void {
   dest.width = width;
   dest.height = height;
-  const ctx2d = dest.getContext("2d")!;
-  ctx2d.save();
-  ctx2d.translate(0, height);
-  ctx2d.scale(1, -1);
-  ctx2d.drawImage(glCanvas!, 0, 0);
-  ctx2d.restore();
+
+  // Read pixels from the GL framebuffer — row 0 is the bottom row in GL
+  const pixels = new Uint8Array(width * height * 4);
+  ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
+
+  // Create ImageData and flip rows (GL bottom-up → Canvas top-down)
+  const imageData = new ImageData(width, height);
+  const dst = imageData.data;
+  const rowSize = width * 4;
+  for (let y = 0; y < height; y++) {
+    const srcOffset = (height - 1 - y) * rowSize;
+    const dstOffset = y * rowSize;
+    dst.set(pixels.subarray(srcOffset, srcOffset + rowSize), dstOffset);
+  }
+
+  dest.getContext("2d")!.putImageData(imageData, 0, 0);
 }
 
 export function renderEffect(
@@ -150,7 +168,7 @@ export function renderEffect(
   ctx.bindVertexArray(quadVAO);
   ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 4);
 
-  copyToDest(dest, width, height);
+  copyToDest(ctx, dest, width, height);
   ctx.deleteTexture(tex);
 }
 
@@ -231,15 +249,12 @@ export function renderMultiPass(
       // Render to FBO
       const target = fbos[i % 2];
       ctx.bindFramebuffer(ctx.FRAMEBUFFER, target.fbo);
-      // Bind output texture to its unit so next pass can read it
-      ctx.activeTexture(ctx.TEXTURE0 + 2 + (i % 2));
-      ctx.bindTexture(ctx.TEXTURE_2D, target.tex);
     }
 
     ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 4);
   }
 
-  copyToDest(dest, width, height);
+  copyToDest(ctx, dest, width, height);
 
   // Cleanup
   ctx.deleteTexture(srcTex);

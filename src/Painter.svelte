@@ -48,22 +48,24 @@
   });
 </script>
 
-<div class="panels">
-  <section class="panel">
-    <h2>Original</h2>
-    <div class="canvas-wrap">
-      <Magnifier canvas={originalCanvas}>
-        <canvas bind:this={originalCanvas}></canvas>
-      </Magnifier>
-    </div>
-
-    <div class="controls">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h3 class="section-label">Image</h3>
       <label class="file-upload">
-        <span class="file-upload-label">Choose image</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span>Upload Image</span>
         <input type="file" accept="image/*" onchange={handleFileUpload} />
       </label>
+    </div>
 
-      <div class="effect-selector">
+    <div class="sidebar-section">
+      <h3 class="section-label">Effect</h3>
+      <div class="effect-list">
         {#each effects as effect (effect.id)}
           <button
             class="effect-btn"
@@ -74,16 +76,23 @@
           </button>
         {/each}
       </div>
+    </div>
 
-      {#if selectedEffect.params.length > 0}
+    {#if selectedEffect.params.length > 0}
+      <div class="sidebar-section">
+        <h3 class="section-label">Parameters</h3>
         <div class="params">
           {#each selectedEffect.params as paramDef (paramDef.name)}
             <label class="param">
-              <span>{paramDef.label}</span>
+              <div class="param-header">
+                <span class="param-label">{paramDef.label}</span>
+                <span class="param-value">{params[paramDef.name]}</span>
+              </div>
               <input
-                type="number"
+                type="range"
                 min={paramDef.min}
                 max={paramDef.max}
+                step="1"
                 value={params[paramDef.name]}
                 oninput={(e) => {
                   params[paramDef.name] = Number((e.target as HTMLInputElement).value);
@@ -92,77 +101,106 @@
             </label>
           {/each}
         </div>
-      {/if}
+      </div>
+    {/if}
 
-      <button class="apply-btn" onclick={handleApply}>
-        Apply Effect
-      </button>
-    </div>
-  </section>
+    <button class="apply-btn" onclick={handleApply}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Apply Effect
+    </button>
+  </aside>
 
-  <section class="panel">
-    <h2>Result</h2>
-    <div class="canvas-wrap">
-      <Magnifier canvas={processedCanvas}>
-        <canvas bind:this={processedCanvas}></canvas>
-      </Magnifier>
+  <main class="canvas-area">
+    <div class="canvas-panel">
+      <div class="panel-header">
+        <span class="panel-label">Original</span>
+      </div>
+      <div class="canvas-wrap">
+        <Magnifier canvas={originalCanvas}>
+          <canvas bind:this={originalCanvas}></canvas>
+        </Magnifier>
+      </div>
     </div>
-  </section>
+
+    <div class="canvas-panel">
+      <div class="panel-header">
+        <span class="panel-label">Result</span>
+        <span class="panel-badge">{selectedEffect.name}</span>
+      </div>
+      <div class="canvas-wrap">
+        <Magnifier canvas={processedCanvas}>
+          <canvas bind:this={processedCanvas}></canvas>
+        </Magnifier>
+      </div>
+    </div>
+  </main>
 </div>
 
 <style>
-  .panels {
+  .layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    grid-template-columns: 260px 1fr;
+    gap: 1.5rem;
     align-items: start;
   }
 
-  @media (max-width: 800px) {
-    .panels {
+  @media (max-width: 900px) {
+    .layout {
       grid-template-columns: 1fr;
     }
   }
 
-  .panel {
+  /* Sidebar */
+  .sidebar {
+    position: sticky;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.5rem;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
   }
 
-  h2 {
-    font-family: "Playfair Display", Georgia, serif;
-    font-size: 1.15rem;
-    font-weight: 400;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
+  @media (max-width: 900px) {
+    .sidebar {
+      position: static;
+    }
   }
 
-  .canvas-wrap {
-    position: relative;
-    background: var(--canvas-bg);
-    border-radius: 6px;
-    overflow: hidden;
-    line-height: 0;
-  }
-
-  .canvas-wrap canvas {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .controls {
-    margin-top: 1.25rem;
+  .sidebar-section {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* File upload */
   .file-upload {
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.82rem;
     cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
 
   .file-upload input {
@@ -172,105 +210,188 @@
     cursor: pointer;
   }
 
-  .file-upload-label {
-    display: block;
-    padding: 0.6rem 1rem;
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    text-align: center;
-    transition: border-color 0.2s, color 0.2s;
-  }
-
-  .file-upload:hover .file-upload-label {
+  .file-upload:hover {
     border-color: var(--accent);
     color: var(--text);
+    background: var(--accent-muted);
   }
 
-  .effect-selector {
+  /* Effect list */
+  .effect-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .effect-btn {
-    padding: 0.4rem 0.75rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
+    padding: 0.45rem 0.65rem;
+    background: transparent;
+    border: none;
     border-radius: 6px;
     color: var(--text-muted);
     font-family: inherit;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
+    text-align: left;
     cursor: pointer;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    transition: background 0.15s, color 0.15s;
   }
 
   .effect-btn:hover {
-    border-color: var(--accent);
+    background: var(--accent-muted);
     color: var(--text);
   }
 
   .effect-btn.active {
     background: var(--accent);
-    border-color: var(--accent);
-    color: var(--bg);
+    color: var(--accent-text);
+    font-weight: 500;
   }
 
+  /* Params */
   .params {
     display: flex;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.65rem;
   }
 
   .param {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
-  .param span {
+  .param-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .param-label {
     font-size: 0.75rem;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
 
-  .param input {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.5rem 0.7rem;
-    color: var(--text);
-    font-size: 0.9rem;
-    font-family: inherit;
+  .param-value {
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    min-width: 2ch;
+    text-align: right;
+  }
+
+  .param input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    transition: border-color 0.2s;
-  }
-
-  .param input:focus {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
     outline: none;
-    border-color: var(--accent);
+    cursor: pointer;
   }
 
+  .param input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .param input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  .param input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+
+  /* Apply button */
   .apply-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.7rem 1.5rem;
+    margin-top: 0.5rem;
+    padding: 0.65rem 1rem;
     background: var(--accent);
-    color: var(--bg);
+    color: var(--accent-text);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
   }
 
   .apply-btn:hover {
     background: var(--accent-hover);
+  }
+
+  .apply-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* Canvas area */
+  .canvas-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .canvas-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .panel-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .panel-badge {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
+    background: var(--accent-muted);
+    color: var(--accent);
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    background: var(--canvas-bg);
+    line-height: 0;
+  }
+
+  .canvas-wrap canvas {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 </style>

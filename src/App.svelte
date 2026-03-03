@@ -23,9 +23,10 @@
 
 <header>
   <div class="header-row">
-    <div>
+    <div class="brand">
       <h1>Rembrandt</h1>
-      <p>Image effect generator</p>
+      <span class="separator"></span>
+      <p>Image Effects Studio</p>
     </div>
     <button class="theme-toggle" onclick={toggleTheme} aria-label="Toggle theme">
       {#if theme === "dark"}
@@ -51,47 +52,87 @@
 
 <Painter />
 
+<footer>
+  <p>GPU-accelerated WebGL2 effects</p>
+</footer>
+
 <style>
   header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
 
   .header-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
   }
 
   h1 {
     font-family: "Playfair Display", Georgia, serif;
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--accent);
   }
 
-  p {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
+  .separator {
+    width: 1px;
+    height: 1.2rem;
+    background: var(--border);
+    align-self: center;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
   }
 
   .theme-toggle {
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
-    margin-top: 0.4rem;
-    background: var(--surface);
+    width: 36px;
+    height: 36px;
+    background: transparent;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
     cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
 
   .theme-toggle:hover {
     border-color: var(--accent);
-    color: var(--text);
+    color: var(--accent);
+    background: var(--accent-muted);
+  }
+
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    .brand {
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .separator {
+      display: none;
+    }
   }
 </style>

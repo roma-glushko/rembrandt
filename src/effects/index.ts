@@ -31,22 +31,44 @@ import { infrared } from "./infrared";
 import { datamosh } from "./datamosh";
 import { vhs } from "./vhs";
 import { hologram } from "./hologram";
+import { chromaticAberration } from "./chromatic-aberration";
+import { kaleidoscope } from "./kaleidoscope";
+import { swirl } from "./swirl";
+import { halftone } from "./halftone";
+import { wireframe } from "./wireframe";
+import { matrix } from "./matrix";
+import { duotone } from "./duotone";
+import { tiltShift } from "./tilt-shift";
+import { corruptJpeg } from "./corrupt-jpeg";
 
 export const effects: Effect[] = [
+  // Artistic
   oilPainting,
   watercolor,
-  pixelate,
+  halftone,
+  duotone,
+  // Classic
   grayscale,
+  posterize,
   emboss,
   edgeDetect,
-  posterize,
-  glitch,
+  pixelate,
+  // Futuristic
   neonGlow,
   synthwave,
+  wireframe,
   infrared,
-  datamosh,
-  vhs,
   hologram,
+  matrix,
+  // Distortion
+  glitch,
+  datamosh,
+  corruptJpeg,
+  vhs,
+  chromaticAberration,
+  swirl,
+  kaleidoscope,
+  tiltShift,
 ];
 
 export function getDefaults(effect: Effect): Record<string, number> {

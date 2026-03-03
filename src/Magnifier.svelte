@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
 
-  const LOUPE_SIZE = 160;
+  const LOUPE_SIZE = 180;
   const ZOOM = 3;
 
   let { canvas, children }: { canvas: HTMLCanvasElement | undefined; children: Snippet } = $props();
@@ -20,17 +20,14 @@
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
 
-    // Position the loupe (clamped so it doesn't go off-edge)
     loupeX = mx;
     loupeY = my;
 
-    // Map mouse position from displayed size to actual canvas pixels
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     const srcX = mx * scaleX;
     const srcY = my * scaleY;
 
-    // Draw zoomed region into the loupe canvas
     const ctx = loupe.getContext("2d")!;
     const srcRadius = (LOUPE_SIZE / 2 / ZOOM) * scaleX;
 
@@ -99,7 +96,11 @@
     transform: translate(-50%, -50%);
     border-radius: 50%;
     border: 2px solid var(--accent);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.5);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(0, 0, 0, 0.4),
+      inset 0 0 20px rgba(0, 0, 0, 0.15);
     image-rendering: pixelated;
+    backdrop-filter: none;
   }
 </style>
